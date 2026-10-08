@@ -22,13 +22,13 @@ export const signin =async (req,res)=>{
          })
      }
  
-     const ExistingUser=await User.findOne({email})
+    //  const ExistingUser=await User.findOne({email})
      
-     if(ExistingUser){
-         return res.status(404).json({
-             message:"User Exist"
-         })
-     }
+    //  if(ExistingUser){
+    //      return res.status(404).json({
+    //          message:"User Exist"
+    //      })
+    //  }
      const user=await User.create({
          username,email,password
      })
@@ -65,27 +65,28 @@ export const signin =async (req,res)=>{
 
         
         if(!user){
-            res.status(404).json({
+          return  res.status(404).json({
                 message:"User Not Exist"
             })
         }
         const checkPassword=await PasswordCheck(password,user.password)
 
         if(!checkPassword){
-            res.status(404).json({
+           return res.status(404).json({
                 message:"Incorrect Password"
             })
         }
 
         const token =await generateToken(user._id)
-        res.status(201).cookie("token",token).json({
+       return res.status(201).cookie("token",token).json({
             message:"login"
         })
         
     } catch (error) {
         console.log("login problem");
         res.status(500).json({
-            message:"Backend Error"
+            message:"Backend Error",
+            data:error.message
         })
     }
    }

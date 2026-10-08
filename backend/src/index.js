@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser"
 import postRouter from "./router/postRouter.js"
 import linkRouter from "./router/linkRouter.js"
 import cors from "cors"
+import { createRateLimiter } from "./middlewares/rateLimiting.js";
+import redisClient from "./utils/redisClient.js";
 dotenv.config()
 const app=express()
 const port = process.env.PORT
@@ -18,11 +20,19 @@ app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
-app.use("/api/auth",authUser);
-app.use("/api/post",postRouter);
-app.use("/api/share",linkRouter);
+const rateLimit=createRateLimiter(redisClient)
+// console.log("-- ",rateLimit);
 
+app.use("/api/auth",rateLimit,authUser);
+app.use("/api/post",rateLimit,postRouter);
+app.use("/api/share",rateLimit,linkRouter);
 
+app.get("/health",(_req,res)=>{
+  // console.log("-- ",rateLimit);
+    res.status(200).json({
+        message:"Server is Healthy"
+    })
+})
 
 app.listen(port,()=>{
 console.log(`Server Running On Port ${port}`);
